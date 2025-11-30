@@ -1,11 +1,623 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>My Website</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>BeerMe | Cheap Beer Finder</title>
+
+  <!-- SEO META TAGS -->
+  <meta name="description" content="BeerMe helps you find the cheapest pints in the UK—compare prices at top pubs and save on your next night out.">
+  <meta name="keywords" content="beer, cheap beer, pub prices, UK pubs, BeerMe">
+  <meta name="author" content="Tom Moncrief">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="BeerMe | Find Cheap Pints in the UK">
+  <meta property="og:description" content="Use BeerMe to compare pub prices and score your next pint on a budget.">
+  <meta property="og:image" content="https://beerme.uk/assets/beer-thumbnail.jpg">
+  <meta property="og:url" content="https://beerme.uk">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@YourTwitterHandle">
+  <meta name="twitter:title" content="BeerMe | Find Cheap Pints in the UK">
+  <meta name="twitter:description" content="Compare pub prices across the UK and never overpay for a pint again.">
+  <meta name="twitter:image" content="https://beerme.uk/assets/beer-thumbnail.jpg">
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    :root {
+      --brand: #fbbf24;
+      --brand-dark: #92400e;
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #4b5563;
+      --hero-grad: linear-gradient(135deg, var(--brand) 0%, #fde68a 100%);
+      --neon: #38bdf8;
+    }
+
+    body.dark {
+      --bg: #050608;
+      --card: #0b0f16;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --hero-grad: radial-gradient(circle at top, var(--brand) 0%, #111827 65%, #020617 100%);
+    }
+
+    /* Reset & base */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      transition: background 0.3s, color 0.3s;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* Header / nav */
+    header {
+      background: var(--card);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: transform 0.3s ease, background 0.3s;
+    }
+    .nav {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--brand-dark);
+    }
+    .logo span { color: var(--text); }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--brand-dark);
+      border: 1px solid rgba(251, 191, 36, 0.5);
+    }
+
+    nav ul {
+      list-style: none;
+      display: none;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    nav.open ul { display: flex; }
+    nav ul li a {
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+    nav ul li a:hover {
+      color: var(--brand-dark);
+    }
+
+    .burger {
+      background: none;
+      border: none;
+      font-size: 1.7rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    #modeToggle {
+      background: none;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    @media (min-width: 768px) {
+      .burger { display: none; }
+      nav ul {
+        display: flex;
+        flex-direction: row;
+        margin-top: 0;
+        gap: 1.25rem;
+      }
+    }
+
+    /* Hero */
+    .hero {
+      background: var(--hero-grad);
+      text-align: center;
+      padding: 5rem 1.25rem 6rem;
+    }
+    .hero-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.2rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.75);
+      font-size: 0.8rem;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.4rem, 5vw, 3.5rem);
+      margin-bottom: 0.75rem;
+      color: #1f2933;
+    }
+    body.dark .hero h1 {
+      color: var(--neon);
+      text-shadow: 0 0 10px rgba(56,189,248,0.6);
+    }
+    .hero p {
+      max-width: 580px;
+      margin: 0 auto 1.75rem;
+      font-size: 1.05rem;
+      color: #4b5563;
+    }
+    body.dark .hero p { color: var(--muted); }
+
+    .hero-cta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+    .btn-primary {
+      background: var(--brand-dark);
+      color: #fff;
+      padding: 0.8rem 1.6rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(146, 64, 14, 0.35);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #1f2937;
+      padding: 0.8rem 1.4rem;
+      border-radius: 999px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+    }
+    body.dark .btn-secondary { color: var(--muted); }
+
+    .hero-footnote {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    /* Main / sections */
+    main {
+      max-width: 1000px;
+      margin: -3rem auto 3rem;
+      padding: 0 1rem;
+    }
+    .section {
+      background: var(--card);
+      border-radius: 1.25rem;
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.1);
+      padding: 2.4rem 1.8rem;
+      margin-bottom: 1.75rem;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .section:hover {
+      transform: translateY(-2px);
+    }
+    @media (min-width: 768px) {
+      .section {
+        padding: 2.8rem 2.5rem;
+      }
+    }
+    .section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .section p {
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1.5fr 1.2fr;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    @media (max-width: 768px) {
+      .split {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+      font-size: 0.78rem;
+    }
+    .tag {
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.12);
+      color: var(--muted);
+    }
+
+    .simple-list {
+      list-style: none;
+      margin-top: 0.8rem;
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+    .simple-list li {
+      margin: 0.65rem 0;
+    }
+    .simple-list strong {
+      color: var(--text);
+    }
+
+    /* Map */
+    #map {
+      height: 320px;
+      border-radius: 1rem;
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+    @media (min-width: 768px) {
+      #map { height: 360px; }
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem 2rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    /* Cookie banner */
+    #cookie-consent {
+      display: none;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--card);
+      color: var(--text);
+      padding: 0.9rem 1.5rem;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.3);
+      font-size: 0.9rem;
+      z-index: 2000;
+    }
+    #cookie-consent-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    #cookie-consent a {
+      color: var(--brand-dark);
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+    }
+    #accept-cookies {
+      background: var(--brand-dark);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 0.5rem 1.4rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+  </style>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-SQ6W4DJ2SZ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-SQ6W4DJ2SZ');
+  </script>
 </head>
 <body>
-  <h1>Hello World</h1>
-  <p>This is my first website!</p>
+  <header id="site-header">
+    <div class="nav">
+      <div class="nav-left">
+        <button class="burger" aria-label="Open menu">☰</button>
+        <a href="#" class="logo">🍺 <span>BeerMe</span></a>
+        <span class="badge">Student project · Pre-launch</span>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="#about">How it works</a></li>
+          <li><a href="#favourites">Bristol demo</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+      <button id="modeToggle" aria-label="Toggle theme">🌙</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-pill">
+        🍺 Built by a broke student • Designed to save you £££
+      </div>
+      <h1>Find the cheapest pint near you.</h1>
+      <p>
+        BeerMe is a simple tool to compare pub prices, discover student-friendly spots, 
+        and make sure your next round doesn’t rinse your loan.
+      </p>
+      <div class="hero-cta">
+        <a href="#about"><button class="btn-primary">See how BeerMe will work</button></a>
+        <a href="#favourites"><button class="btn-secondary">View Bristol demo map</button></a>
+      </div>
+      <p class="hero-footnote">Early prototype · Data is sample only (for now).</p>
+    </div>
+  </section>
+
+  <main>
+    <!-- How it works -->
+    <section id="about" class="section">
+      <div class="split">
+        <div>
+          <h2>What is BeerMe?</h2>
+          <p>
+            I’m <strong>Tom Moncrief</strong>, a biology grad and AI researcher building BeerMe: 
+            a UK-wide pub price finder that lets students and pint-hunters quickly see where their 
+            money goes furthest.
+          </p>
+          <ul class="simple-list">
+            <li><strong>Search by location</strong> – drop a pin or use your GPS.</li>
+            <li><strong>Compare prices</strong> – pints, bottles, cider and more.</li>
+            <li><strong>Student-friendly focus</strong> – highlight proper bargains.</li>
+          </ul>
+          <div class="tag-row">
+            <span class="tag">Student project</span>
+            <span class="tag">Built with HTML, CSS & JS</span>
+            <span class="tag">Map powered by Leaflet</span>
+          </div>
+        </div>
+        <div>
+          <h3 style="font-size:1rem;margin-bottom:0.5rem;">What’s live today?</h3>
+          <p>
+            Right now you’re looking at the <strong>landing page prototype</strong>. 
+            Behind the scenes I’m working on:
+          </p>
+          <ul class="simple-list">
+            <li>✅ Clean UI and dark mode.</li>
+            <li>✅ Location detection (with your permission).</li>
+            <li>🛠 Price database & pub upload tools.</li>
+            <li>🛠 Mobile app & widget ideas.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bristol demo -->
+    <section id="favourites" class="section">
+      <h2>Bristol demo – favourite pint spots</h2>
+      <p>
+        Here’s a small demo around Bristol using sample data. Tap the markers to see 
+        some of my go-to places for a pint.
+      </p>
+      <div id="map"></div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="section">
+      <h2>Stay in the loop</h2>
+      <p>
+        Want to test BeerMe when it’s ready, or collaborate on the project?
+        Drop me an email:
+      </p>
+      <p style="margin-top:0.5rem;">
+        📧 <a href="mailto:hello@beerme.uk">hello@beerme.uk</a>
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 BeerMe.uk – Built with 🍺 & ❤️ by Tom Moncrief
+  </footer>
+
+  <!-- Cookie banner -->
+  <div id="cookie-consent">
+    <div id="cookie-consent-inner">
+      <span>
+        🍪 We use cookies (and basic analytics) to understand how people use BeerMe.
+        <a href="/privacy.html" target="_blank" rel="noopener noreferrer">Learn more</a>
+      </span>
+      <button id="accept-cookies">Sounds good 👍</button>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      /* ==============================
+         THEME TOGGLE
+      ============================== */
+      const modeBtn = document.getElementById('modeToggle');
+      const storedTheme = localStorage.getItem('beerme-theme');
+
+      if (storedTheme === 'dark') {
+        document.body.classList.add('dark');
+      }
+      modeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+
+      /* ==============================
+         NAV BURGER
+      ============================== */
+      const burger = document.querySelector('.burger');
+      const nav = document.querySelector('nav');
+      burger.addEventListener('click', () => {
+        nav.classList.toggle('open');
+      });
+
+      /* ==============================
+         HEADER SHOW / HIDE ON SCROLL
+      ============================== */
+      const header = document.getElementById('site-header');
+      let lastY = window.pageYOffset;
+      window.addEventListener('scroll', () => {
+        const currentY = window.pageYOffset;
+        if (currentY > lastY + 50) {
+          header.style.transform = 'translateY(-100%)';
+        } else if (currentY < lastY - 50) {
+          header.style.transform = 'translateY(0)';
+        }
+        lastY = currentY;
+      });
+
+      /* ==============================
+         MAP INITIALISATION
+      ============================== */
+      const map = L.map('map', { scrollWheelZoom: false }).setView([51.462, -2.603], 14);
+
+      const lightTiles = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        {
+          attribution: '&copy; OpenStreetMap contributors & CartoDB',
+          subdomains: 'abcd',
+          maxZoom: 19
+        }
+      );
+
+      const darkTiles = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        {
+          attribution: '&copy; OpenStreetMap contributors & CartoDB',
+          subdomains: 'abcd',
+          maxZoom: 19
+        }
+      );
+
+      // Start with correct tiles based on theme
+      if (document.body.classList.contains('dark')) {
+        darkTiles.addTo(map);
+      } else {
+        lightTiles.addTo(map);
+      }
+
+      // Pub markers
+      const pubs = [
+        { name: 'The Commercial Rooms', coords: [51.4545, -2.5942], desc: 'Historic Wetherspoons with cheap pints.' },
+        { name: 'The White Bear', coords: [51.4630, -2.6027], desc: 'Cosy pub near uni with local ales.' },
+        { name: 'Steam', coords: [51.4646, -2.6109], desc: 'Huge terrace & rotating craft taps.' }
+      ];
+      pubs.forEach(p =>
+        L.marker(p.coords).addTo(map).bindPopup(`<b>${p.name}</b><br>${p.desc}`)
+      );
+
+      // Theme toggle interaction with map
+      modeBtn.addEventListener('click', () => {
+        const isDark = document.body.classList.toggle('dark');
+        modeBtn.textContent = isDark ? '☀️' : '🌙';
+        localStorage.setItem('beerme-theme', isDark ? 'dark' : 'light');
+
+        if (isDark) {
+          map.removeLayer(lightTiles);
+          darkTiles.addTo(map);
+        } else {
+          map.removeLayer(darkTiles);
+          lightTiles.addTo(map);
+        }
+      });
+
+      /* ==============================
+         COOKIE CONSENT
+      ============================== */
+      const cookieBanner = document.getElementById('cookie-consent');
+      const cookieBtn = document.getElementById('accept-cookies');
+
+      if (!localStorage.getItem('cookies-accepted')) {
+        cookieBanner.style.display = 'block';
+      }
+
+      cookieBtn.addEventListener('click', () => {
+        localStorage.setItem('cookies-accepted', 'true');
+        cookieBanner.style.display = 'none';
+      });
+
+      /* ==============================
+         GEOLOCATION (SAVED LOCALLY)
+      ============================== */
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            console.log(`User location: ${lat}, ${lon}`);
+            localStorage.setItem('user-lat', lat);
+            localStorage.setItem('user-lon', lon);
+          },
+          () => {
+            // Soft nudge if blocked
+            const note = document.createElement('div');
+            note.textContent = "⚡ Location access blocked. We can't find nearby pints without it! 🍻";
+            note.style.position = 'fixed';
+            note.style.bottom = '20px';
+            note.style.left = '50%';
+            note.style.transform = 'translateX(-50%)';
+            note.style.background = 'var(--card)';
+            note.style.color = 'var(--text)';
+            note.style.padding = '0.8rem 1.3rem';
+            note.style.borderRadius = '999px';
+            note.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+            note.style.fontSize = '0.9rem';
+            note.style.zIndex = '2100';
+            document.body.appendChild(note);
+            setTimeout(() => note.remove(), 6000);
+          }
+        );
+      } else {
+        console.log('Geolocation not available.');
+      }
+    });
+  </script>
 </body>
 </html>
