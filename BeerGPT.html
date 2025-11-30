@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BeerGPT | BeerMe</title>
+
+  <!-- Reuse your font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg:#050608;
+      --card:#0b0f16;
+      --text:#f9fafb;
+      --muted:#9ca3af;
+      --accent:#fbbf24;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:'Poppins',system-ui,sans-serif;
+      background:radial-gradient(circle at top,#1f2937,#020617 70%);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+    header{
+      padding:0.75rem 1rem;
+    }
+    .nav{
+      max-width:960px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:1rem;
+    }
+    .logo{
+      display:flex;
+      align-items:center;
+      gap:.4rem;
+      font-weight:600;
+      font-size:1.3rem;
+    }
+    .logo span{color:var(--accent);}
+    nav ul{
+      list-style:none;
+      display:flex;
+      gap:1rem;
+      font-size:.9rem;
+    }
+    nav a{color:var(--muted);text-decoration:none;}
+    nav a:hover{color:var(--accent);}
+    main{
+      flex:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:2rem 1.25rem 3rem;
+    }
+    .card{
+      max-width:700px;
+      width:100%;
+      background:rgba(15,23,42,0.9);
+      border-radius:1.25rem;
+      padding:2.4rem 1.8rem;
+      box-shadow:0 20px 50px rgba(0,0,0,0.6);
+      border:1px solid rgba(148,163,184,0.25);
+    }
+    h1{
+      font-size:1.9rem;
+      margin-bottom:.5rem;
+    }
+    p{
+      color:var(--muted);
+      font-size:.98rem;
+      margin-bottom:1rem;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:.4rem;
+      padding:.25rem .7rem;
+      border-radius:999px;
+      background:rgba(248,250,252,0.06);
+      border:1px solid rgba(148,163,184,0.3);
+      font-size:.78rem;
+      margin-bottom:1rem;
+    }
+    .btn-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.75rem;
+      margin-top:1rem;
+    }
+    .btn{
+      padding:.7rem 1.3rem;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      font-size:.9rem;
+      font-weight:500;
+    }
+    .btn-primary{
+      background:var(--accent);
+      color:#1f2937;
+    }
+    .btn-ghost{
+      background:transparent;
+      color:var(--muted);
+      border:1px solid rgba(148,163,184,0.4);
+    }
+    footer{
+      text-align:center;
+      padding:1.2rem;
+      font-size:.8rem;
+      color:var(--muted);
+    }
+    textarea{
+      width:100%;
+      min-height:90px;
+      border-radius:.75rem;
+      border:1px solid rgba(148,163,184,0.4);
+      background:rgba(15,23,42,0.8);
+      color:var(--text);
+      padding:.7rem .9rem;
+      font-family:inherit;
+      font-size:.9rem;
+      resize:vertical;
+      margin-top:.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <a href="index.html" class="logo">🍺 <span>BeerMe</span></a>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="#">BeerGPT</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="pill">🧠 Experimental concept · Not live yet</div>
+      <h1>BeerGPT – your pint recommendation assistant</h1>
+      <p>
+        BeerGPT is the AI side of BeerMe: a chat-style assistant that helps you find
+        pubs, compare prices, and pick drinks that match your taste and budget.
+        This page will one day connect to a real model – for now, it’s a concept space.
+      </p>
+      <label for="prompt" style="font-size:.9rem;">What would you ask BeerGPT?</label>
+      <textarea id="prompt" placeholder="e.g. Find the cheapest Guinness near Bristol Temple Meads..."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="alert('Demo only – BeerGPT not wired up yet!')">
+          ⚡ Ask BeerGPT (demo)
+        </button>
+        <a href="mailto:hello@beerme.uk?subject=BeerGPT%20ideas">
+          <button class="btn btn-ghost">Send feedback / ideas</button>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    BeerGPT is a future feature of BeerMe.uk · Built by Tom Moncrief
+  </footer>
+</body>
+</html>

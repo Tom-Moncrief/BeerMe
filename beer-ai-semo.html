@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>BeerMe AI Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <h1>BeerMe AI Demo (WebGPU / ONNX test)</h1>
+  <p id="status">Loading onnxruntime-web…</p>
+
+  <button id="run-btn">Run model</button>
+  <pre id="output"></pre>
+
+  <!-- ONNX Runtime Web -->
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.web.min.js"></script>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const outputEl = document.getElementById('output');
+    const runBtn = document.getElementById('run-btn');
+
+    // Path to your model inside the repo
+    const MODEL_URL = 'assets/models/tiny_beer_model.onnx';
+
+    let session = null;
+
+    async function initSession() {
+      try {
+        statusEl.textContent = 'Initialising session…';
+
+        // Try WebGPU first, then fall back
+        const providers = ['webgpu', 'wasm'];
+
+        session = await ort.InferenceSession.create(MODEL_URL, {
+          executionProviders: providers
+        });
+
+        statusEl.textContent = 'Session ready. Click "Run model".';
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Failed to create session: ' + err;
+      }
+    }
+
+    async function runModel() {
+      if (!session) {
+        statusEl.textContent = 'Session not ready yet.';
+        return;
+      }
+
+      statusEl.textContent = 'Running inference…';
+
+      try {
+        // Our TinyNet has input shape [1, 2]
+        const inputData = new Float32Array([2.0, 2.0]);
+        const inputTensor = new ort.Tensor('float32', inputData, [1, 2]);
+
+        const feeds = { input: inputTensor }; // name must match export
+
+        const results = await session.run(feeds);
+        const outputTensor = results.output;  // name must match export
+
+        outputEl.textContent =
+          'Input: [2.0, 2.0]\n' +
+          'Output: ' + Array.from(outputTensor.data).join(', ');
+
+        statusEl.textContent = 'Inference complete ✅';
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Error during inference: ' + err;
+      }
+    }
+
+    runBtn.addEventListener('click', runModel);
+
+    // Start loading when the page opens
+    initSession();
+  </script>
+</body>
+</html>
