@@ -30,7 +30,7 @@
         statusEl.textContent = 'Initialising session…';
 
         // Try WebGPU first, then fall back
-        const providers = ['webgpu', 'wasm'];
+        const providers = ['wasm'];
 
         session = await ort.InferenceSession.create(MODEL_URL, {
           executionProviders: providers
